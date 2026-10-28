@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Диагностика пробелов · Информатика и программирование · 1 курс</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#141a2b; --muted:#61708a;
+    --line:#e2e8f2; --brand:#2b5cf6; --brand-soft:#e8efff;
+    --ok:#12805c; --ok-bg:#e5f6ef; --bad:#c02637; --bad-bg:#fdeaec;
+    --warn:#9a6700; --warn-bg:#fff6dd; --radius:16px;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 12px 32px -12px rgba(16,24,40,.14);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:24px 18px 80px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px}
+  .brandline{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px}
+  .dot{width:12px;height:12px;border-radius:4px;background:linear-gradient(135deg,#2b5cf6,#7a5cff);display:inline-block}
+  .chip{font-size:13px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:26px 26px}
+  h1{font-size:28px;line-height:1.25;margin:0 0 10px}
+  h2{font-size:21px;margin:0 0 12px}
+  h3{font-size:17px;margin:0 0 8px}
+  p{margin:0 0 12px}
+  .muted{color:var(--muted)}
+  .small{font-size:14px}
+  ul.tight{margin:0 0 14px;padding-left:20px}
+  ul.tight li{margin-bottom:6px}
+  .btn{
+    appearance:none;border:1px solid transparent;background:var(--brand);color:#fff;font-weight:650;
+    font-size:15px;padding:12px 20px;border-radius:12px;cursor:pointer;transition:.15s;
+  }
+  .btn:hover{filter:brightness(1.06)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{background:#fff;border-color:var(--line);color:var(--ink)}
+  .btn.ghost:hover{background:#f7f9fd}
+  .btn.soft{background:var(--brand-soft);color:#1b3fb8}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  input[type=text]{
+    width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;background:#fbfcff;
+  }
+  input[type=text]:focus{outline:2px solid #c3d4ff;border-color:#8fb0ff;background:#fff}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:720px){.grid2{grid-template-columns:1fr}.card{padding:20px}.wrap{padding:16px 12px 60px}}
+
+  /* progress */
+  .progbar{height:8px;background:#e8edf7;border-radius:999px;overflow:hidden;margin:0 0 6px}
+  .progbar > i{display:block;height:100%;background:linear-gradient(90deg,#2b5cf6,#7a5cff);width:0;transition:width .25s}
+  .progtext{font-size:13px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:16px}
+  .qhead{display:flex;gap:10px;align-items:baseline;margin-bottom:10px}
+  .qnum{font-variant-numeric:tabular-nums;color:var(--brand);font-weight:800;font-size:14px;letter-spacing:.4px}
+  .topic{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:#fafbfe}
+  .qtext{font-size:19px;font-weight:650;margin:2px 0 18px;white-space:pre-line}
+  code, .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .qtext code{background:#f2f5fc;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.88em}
+  pre.code{
+    background:#101725;color:#e6ecff;border-radius:12px;padding:14px 16px;overflow:auto;margin:0 0 16px;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px;line-height:1.5;
+  }
+  .opts{display:grid;gap:10px}
+  .opt{
+    display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);background:#fff;border-radius:12px;
+    padding:13px 15px;cursor:pointer;transition:.12s;
+  }
+  .opt:hover{border-color:#9db6ff;background:#fbfcff}
+  .opt input{margin-top:4px;accent-color:var(--brand);transform:scale(1.15)}
+  .opt .key{
+    flex:0 0 24px;height:24px;border-radius:7px;background:#eef2fa;color:#5a6b8c;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .opt.sel{border-color:var(--brand);background:#f5f8ff}
+  .opt.sel .key{background:var(--brand);color:#fff}
+  .hint{font-size:13px;color:var(--muted);margin-top:14px}
+  kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:#fff;font-size:12px}
+
+  /* results */
+  .score{display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:6px}
+  .ring{--p:0;width:118px;height:118px;border-radius:50%;flex:0 0 auto;
+    background:conic-gradient(var(--ringcol,#2b5cf6) calc(var(--p)*1%), #e8edf7 0);
+    display:flex;align-items:center;justify-content:center}
+  .ring > div{width:92px;height:92px;background:#fff;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring b{font-size:26px;line-height:1}
+  .ring span{font-size:12px;color:var(--muted)}
+  .verdict{font-size:19px;font-weight:700}
+  .topicbar{margin-bottom:12px}
+  .topicbar .t{display:flex;justify-content:space-between;font-size:14px;margin-bottom:5px}
+  .topicbar .tr{height:9px;border-radius:999px;background:#edf1f8;overflow:hidden}
+  .topicbar .tr > i{display:block;height:100%}
+  .tag{font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px}
+  .tag.gap{background:var(--bad-bg);color:var(--bad)}
+  .tag.mid{background:var(--warn-bg);color:var(--warn)}
+  .tag.ok{background:var(--ok-bg);color:var(--ok)}
+  details.rev{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:#fff;overflow:hidden}
+  details.rev[open]{background:#fdfdff}
+  details.rev > summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;gap:10px;align-items:flex-start}
+  details.rev > summary::-webkit-details-marker{display:none}
+  details.rev > summary:hover{background:#f8faff}
+  .mark{flex:0 0 26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+  .mark.ok{background:var(--ok)} .mark.bad{background:var(--bad)}
+  .sumbody{padding:0 15px 15px 51px}
+  .answerline{font-size:14.5px;margin:2px 0}
+  .answerline b.ok{color:var(--ok)} .answerline b.bad{color:var(--bad)}
+  .why{background:#f6f8fd;border-left:3px solid #b9c9ee;padding:10px 12px;border-radius:0 10px 10px 0;font-size:14.5px;margin-top:8px}
+  .why b{display:block;margin-bottom:3px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .keybox{border:1px dashed #c9d5ec;background:#f9fbff;border-radius:12px;padding:14px 16px}
+  .keybox ol{margin:0;padding-left:22px;columns:2;column-gap:28px;font-size:14.5px}
+  @media (max-width:720px){.keybox ol{columns:1}}
+  .footer{margin-top:22px;font-size:13px;color:var(--muted);text-align:center}
+  .divider{height:1px;background:var(--line);margin:22px 0}
+  .pill-list{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 6px;padding:0;list-style:none}
+  .pill-list li{font-size:13.5px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px}
+  @media print{
+    body{background:#fff}
+    .noprint{display:none !important}
+    .card{box-shadow:none;border-color:#ccc;break-inside:avoid}
+    details.rev{break-inside:avoid}
+    details.rev > summary{font-weight:600}
+    .wrap{max-width:100%;padding:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brandline"><span class="dot"></span> Диагностика · Информатика 1 курс</div>
+    <span style="display:flex;gap:8px;align-items:center">
+      <a class="chip noprint" href="game.html" style="text-decoration:none">🎮 Двоичный тренажёр</a>
+      <span class="chip" id="chipQ">40 вопросов</span>
+    </span>
+  </header>
+
+  <!-- ============ СТАРТ ============ -->
+  <section id="screenStart" class="card">
+    <h1>Проверочный тест: информатика и программирование</h1>
+    <p class="muted">Базовый уровень 1 курса. 40 вопросов, по одному на экране. Цель — не оценка, а карта пробелов: в конце вы увидите правильные и неправильные ответы с пояснениями и разбивку по темам.</p>
+    <div class="divider"></div>
+    <h3>Как проходит</h3>
+    <ul class="tight small">
+      <li>Один вариант ответа в каждом вопросе. Можно возвращаться назад и менять ответ.</li>
+      <li>Темы: устройство компьютера, двоичная система, логика, блок-схемы, списки, функции и базовый синтаксис Python.</li>
+      <li>Если не знаете — выбирайте вариант наугад и <b>пометьте это для себя</b>: угаданный ответ и знаемый ответ в отчёте выглядят одинаково, а пробел важнее балла.</li>
+      <li>Черновик ответов сохраняется в браузере: случайное обновление страницы не сотрёт прогресс.</li>
+    </ul>
+    <div class="divider"></div>
+    <div class="row">
+      <button class="btn" id="btnStart">Начать тест</button>
+      <span class="spacer"></span>
+      <span class="small muted">Горячие клавиши: <kbd>1</kbd>–<kbd>4</kbd> выбор · <kbd>→</kbd> дальше · <kbd>←</kbd> назад</span>
+    </div>
+  </section>
+
+  <!-- ============ ВОПРОС ============ -->
+  <section id="screenQuiz" class="card" style="display:none">
+    <div class="progbar"><i id="progFill"></i></div>
+    <div class="progtext"><span id="progLeft">Вопрос 1 из 20</span><span id="progRight">Отвечено: 0</span></div>
+    <div class="qhead"><span class="qnum" id="qNum">01</span><span class="topic" id="qTopic">—</span></div>
+    <div class="qtext" id="qText"></div>
+    <div id="qCode"></div>
+    <div class="opts" id="qOpts"></div>
+    <div class="divider"></div>
+    <div class="row">
+      <button class="btn ghost" id="btnPrev">← Назад</button>
+      <span class="spacer"></span>
+      <button class="btn" id="btnNext">Дальше →</button>
+      <button class="btn" id="btnFinish" style="display:none;background:#12805c">Завершить и посмотреть результаты</button>
+    </div>
+    <div class="hint" id="quizHint"></div>
+  </section>
+
+  <!-- ============ РЕЗУЛЬТАТЫ ============ -->
+  <section id="screenResult" style="display:none">
+    <div class="card">
+      <div class="score">
+        <div class="ring" id="ring"><div><b id="scoreNum">0/20</b><span id="scorePct">0%</span></div></div>
+        <div>
+          <div class="verdict" id="verdict">—</div>
+          <p class="muted small" id="verdictSub" style="margin:4px 0 0"></p>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <h2>Карта пробелов по темам</h2>
+      <p class="muted small">Красное — тема не закрыта, с неё и стоит начинать занятия.</p>
+      <div id="topicBreak"></div>
+      <div class="divider"></div>
+      <div class="row noprint">
+        <button class="btn ghost" id="btnRestart">Пройти заново</button>
+        <button class="btn soft" id="btnCopy">Скопировать отчёт</button>
+        <button class="btn soft" id="btnPrint">Печать / PDF</button>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="btnToggleKey">Ключ ответов</button>
+      </div>
+      <div id="keyWrap" class="keybox" style="display:none;margin-top:14px"><ol id="keyListResult"></ol></div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h2>Все ответы: правильные и неправильные</h2>
+      <div class="row small muted" style="margin-bottom:14px">
+        <button class="btn ghost" id="btnOpenBad" style="padding:7px 14px;font-size:13.5px">Открыть только ошибки</button>
+        <button class="btn ghost" id="btnOpenAll" style="padding:7px 14px;font-size:13.5px">Открыть все</button>
+        <button class="btn ghost" id="btnCloseAll" style="padding:7px 14px;font-size:13.5px">Свернуть</button>
+      </div>
+      <div id="reviewList"></div>
+    </div>
+
+    <div class="card" style="margin-top:18px" id="planCard">
+      <h2>Что взять на следующий урок</h2>
+      <ul class="tight" id="planList"></ul>
+    </div>
+
+    <div class="footer noprint">Отчёт сформирован локально в браузере. Данные никуда не отправляются.</div>
+  </section>
+</div>
+
+<script>
+/* =========================================================================
+   БАНК ВОПРОТОВ. correct — индекс правильного варианта (0..3).
+   ========================================================================= */
+const QUESTIONS = [
+  {
+    topic: "Устройство компьютера",
+    text: "Что делает процессор компьютера?",
+    options: [
+      "Подключает компьютер к интернету",
+      "Хранит файлы после выключения компьютера",
+      "Выполняет команды программы и обрабатывает данные",
+      "Выводит изображение на экран"
+    ],
+    correct: 2,
+    why: "Процессор (CPU) — исполнитель команд: он читает инструкции программы, выполняет арифметические и логические операции и управляет остальными устройствами. Файлы после выключения хранит жёсткий диск или SSD, картинку выводит видеокарта, а за сеть отвечает сетевая карта."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Что такое оперативная память (ОЗУ, RAM)?",
+    options: [
+      "Память, в которой данные хранятся и после выключения компьютера",
+      "Устройство для печати документов",
+      "Программа для запуска других программ",
+      "Быстрая память для программы и данных во время работы; при выключении всё стирается"
+    ],
+    correct: 3,
+    why: "ОЗУ — «рабочий стол» компьютера: туда загружаются запущенная программа и её данные, обращение к ней очень быстрое. Но она энергозависимая — выключили питание, всё исчезло. Постоянное хранение — это жёсткий диск или SSD."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Какое устройство хранит информацию быстрее всего?",
+    options: [
+      "Флешка (USB)",
+      "SSD-накопитель",
+      "Жёсткий диск (HDD)",
+      "DVD-диск"
+    ],
+    correct: 1,
+    why: "SSD — память на микросхемах, без вращающихся частей, поэтому читает и пишет в разы быстрее HDD и флешки. Ещё быстрее работает оперативная память, а быстрее всех — кэш и регистры внутри процессора."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Что из перечисленного является устройством ввода информации?",
+    options: [
+      "Принтер",
+      "Монитор",
+      "Клавиатура",
+      "Колонки"
+    ],
+    correct: 2,
+    why: "Клавиатура и мышь вводят данные в компьютер. Монитор, принтер и колонки — устройства вывода: они показывают результат работы человеку."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Чем системный блок отличается от монитора?",
+    options: [
+      "Это одно и то же, просто разные названия",
+      "В системном блоке находятся основные устройства компьютера, а монитор только показывает изображение",
+      "Системный блок показывает изображение, а монитор хранит программы",
+      "Монитор работает быстрее системного блока"
+    ],
+    correct: 1,
+    why: "Системный блок — это корпус с материнской платой, процессором, памятью, накопителем и блоком питания: там идёт вся работа. Монитор — устройство вывода, он лишь показывает то, что ему передала видеокарта."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Какое устройство нужно, чтобы вывести документ на бумагу?",
+    options: [
+      "Принтер",
+      "Процессор",
+      "Сканер",
+      "Модем"
+    ],
+    correct: 0,
+    why: "Принтер печатает документ на бумаге. Сканер делает обратное: превращает бумажный документ в файл. Модем отвечает за связь с сетью."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Что происходит с несохранённым документом после выключения компьютера?",
+    options: [
+      "Он сохраняется автоматически",
+      "Он переносится на флешку",
+      "Ничего не происходит",
+      "Он теряется, потому что оперативная память очищается"
+    ],
+    correct: 3,
+    why: "Пока документ открыт, он лежит в оперативной памяти, а она энергозависимая: нет питания — нет данных. Команда «Сохранить» записывает файл на диск, и вот там он уже переживёт выключение."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Где программа находится в тот момент, когда она запущена и работает?",
+    options: [
+      "В принтере",
+      "Только на жёстком диске",
+      "В оперативной памяти",
+      "На экране монитора"
+    ],
+    correct: 2,
+    why: "С диска программа загружается в оперативную память, и уже оттуда процессор берёт команды — так намного быстрее. На диске лежит файл программы, а работает она в ОЗУ."
+  },
+  {
+    topic: "Устройство компьютера",
+    text: "Что такое файл?",
+    options: [
+      "Именованная область данных на диске: программа, документ, картинка",
+      "Часть оперативной памяти",
+      "Программа для открытия документов",
+      "Устройство для хранения данных"
+    ],
+    correct: 0,
+    why: "Файл — это данные на диске, у которых есть имя, размер и расширение. Расширение подсказывает, чем файл открывать: .txt — текст, .jpg — картинка, .py — программа на Python."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Что такое 1 бит?",
+    options: [
+      "Скорость работы процессора",
+      "Наименьшая единица информации — один двоичный разряд: 0 или 1",
+      "Один символ текста на экране",
+      "8 байт памяти"
+    ],
+    correct: 1,
+    why: "Бит принимает всего два значения: 0 или 1. Из битов складывается всё остальное: 1 байт = 8 бит. Один символ текста занимает не один бит, а обычно один байт (или больше для русских букв в UTF-8)."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Сколько бит в одном байте?",
+    options: [
+      "16",
+      "2",
+      "4",
+      "8"
+    ],
+    correct: 3,
+    why: "1 байт = 8 бит. Это базовая единица, которой измеряют объём данных: дальше идут Кбайт (1024 байт), Мбайт, Гбайт."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Как записать число 3 в двоичной системе счисления?",
+    options: [
+      "11",
+      "10",
+      "101",
+      "100"
+    ],
+    correct: 0,
+    why: "3 = 2 + 1 = 2¹ + 2⁰, значит заняты разряды 1 и 0: 11₂. Ряд небольших чисел полезно помнить наизусть: 1, 10, 11, 100, 101, 110, 111, 1000."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Как записать число 45 в двоичной системе счисления?",
+    options: [
+      "110101",
+      "101011",
+      "100101",
+      "101101"
+    ],
+    correct: 3,
+    why: "45 = 32 + 8 + 4 + 1 = 2⁵ + 2³ + 2² + 2⁰, значит заняты разряды 5, 3, 2, 0: 101101. Проверка делением на 2: остатки 1, 0, 1, 1, 0, 1 — записываем их снизу вверх."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Чему равно двоичное число 101 в десятичной системе?",
+    options: [
+      "5",
+      "10",
+      "4",
+      "6"
+    ],
+    correct: 0,
+    why: "101₂ = 1·4 + 0·2 + 1·1 = 5. Приём: вес разряда — это 2 в степени его номера, нумерация справа с нуля (1, 2, 4, 8, 16…)."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Чему равно двоичное число 1001 в десятичной системе?",
+    options: [
+      "11",
+      "13",
+      "9",
+      "1001"
+    ],
+    correct: 2,
+    why: "1001₂ = 1·8 + 0·4 + 0·2 + 1·1 = 9. Нули в середине ничего не добавляют, но свои разряды занимают — пропускать их нельзя."
+  },
+  {
+    topic: "Системы счисления",
+    text: "Вычислите сумму 10 + 10 в двоичной системе счисления.",
+    options: [
+      "1000",
+      "100",
+      "11",
+      "101"
+    ],
+    correct: 1,
+    why: "10₂ = 2, значит 2 + 2 = 4, а 4 = 100₂. Поразрядно: в младшем разряде 0, в следующем 1 + 1 = 0 и единица переносится дальше — получается 100."
+  },
+  {
+    topic: "Логика",
+    text: "Условие A И B (AND). В каком случае результат True («истина»)?",
+    options: [
+      "Когда истинно хотя бы одно из условий",
+      "Когда оба условия ложны",
+      "Всегда",
+      "Когда истинны оба условия"
+    ],
+    correct: 3,
+    why: "И (AND) требует выполнения обоих условий сразу: True И True = True, во всех остальных случаях False. Пример: «есть билет И есть паспорт» — на посадку пустят только при обоих документах."
+  },
+  {
+    topic: "Логика",
+    text: "Условие A ИЛИ B (OR). Когда результат True?",
+    options: [
+      "Когда истинно хотя бы одно условие",
+      "Никогда",
+      "Только когда оба условия ложны",
+      "Только когда истинны оба условия"
+    ],
+    correct: 0,
+    why: "ИЛИ (OR) срабатывает, если истинно хотя бы одно условие (в программировании «ИЛИ» нестрогое — оба тоже подходят). Пример: «оплата картой ИЛИ наличными»."
+  },
+  {
+    topic: "Логика",
+    text: "Что делает операция НЕ (NOT)?",
+    options: [
+      "Складывает два условия",
+      "Проверяет, истинны ли оба условия",
+      "Меняет значение на противоположное: истину на ложь и наоборот",
+      "Удваивает значение"
+    ],
+    correct: 2,
+    why: "НЕ — это отрицание: NOT True = False, NOT False = True. В Python записывается как not, например: not (5 > 3) даст False."
+  },
+  {
+    topic: "Логика",
+    text: "Чему равно False ИЛИ True (False OR True)?",
+    options: [
+      "Оба значения сразу",
+      "Ошибка",
+      "True",
+      "False"
+    ],
+    correct: 2,
+    why: "ИЛИ срабатывает, если истинно хотя бы одно условие. False ИЛИ True = True. Ложь получается только в одном случае: когда ложны оба условия."
+  },
+  {
+    topic: "Алгоритмы и блок-схемы",
+    text: "Чем алгоритм отличается от обычной инструкции?",
+    options: [
+      "Алгоритм может состоять из одного шага без результата",
+      "Ничем, это одно и то же",
+      "Алгоритм всегда записывают на Python",
+      "Алгоритм — это точная последовательность шагов, которая приводит к результату"
+    ],
+    correct: 3,
+    why: "Алгоритм — конечная последовательность понятных шагов, которая за конечное число шагов даёт результат. Ключевые свойства: дискретность (разбит на шаги), понятность, конечность, результативность."
+  },
+  {
+    topic: "Алгоритмы и блок-схемы",
+    text: "Что обозначает ромб в блок-схеме алгоритма?",
+    options: [
+      "Выполнение действия",
+      "Начало или конец алгоритма",
+      "Проверку условия — ветвление с двумя выходами («да» и «нет»)",
+      "Ввод данных с клавиатуры"
+    ],
+    correct: 2,
+    why: "Ромб — это условие (ветвление): из него выходят две стрелки, «да» и «нет». Овал — начало/конец, прямоугольник — действие, параллелограмм — ввод или вывод данных."
+  },
+  {
+    topic: "Алгоритмы и блок-схемы",
+    text: "Какой фигурой в блок-схеме обозначают ввод или вывод данных?",
+    options: [
+      "Овал",
+      "Параллелограмм",
+      "Ромб",
+      "Прямоугольник"
+    ],
+    correct: 1,
+    why: "Параллелограмм — ввод или вывод данных («ввести x», «вывести результат»). Овал — начало и конец, прямоугольник — действие, ромб — условие."
+  },
+  {
+    topic: "Алгоритмы и блок-схемы",
+    text: "Нужно найти нужное число в списке из 100 элементов, порядок в списке случайный. Сколько элементов придётся проверить в худшем случае при обычном переборе?",
+    options: [
+      "10",
+      "Достаточно 2",
+      "1",
+      "Все 100"
+    ],
+    correct: 3,
+    why: "Если список не упорядочен, остаётся только перебор: в худшем случае нужное число стоит последним (или его нет вовсе) — проверяем все 100. Быстрее искать можно только в отсортированном списке, деля его пополам."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что напечатает этот код?",
+    code: "print(3 + 4)",
+    options: [
+      "7",
+      "Ошибку",
+      "3 + 4",
+      "34"
+    ],
+    correct: 0,
+    why: "С числами знак + означает сложение: 3 + 4 = 7. Обратите внимание: со строками тот же знак склеивает текст — \"3\" + \"4\" даст \"34\"."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что напечатает этот код?",
+    code: "print(7 / 2)",
+    options: [
+      "4",
+      "3",
+      "3.5",
+      "Ошибку"
+    ],
+    correct: 2,
+    why: "Знак / в Python — обычное деление, результат дробный: 3.5. Если нужно целое, используют // (7 // 2 = 3), а остаток получают через % (7 % 2 = 1)."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что напечатает этот код?",
+    code: "print(\"5\" + \"2\")",
+    options: [
+      "52",
+      "Ошибку: числа в кавычках складывать нельзя",
+      "7",
+      "5 2"
+    ],
+    correct: 0,
+    why: "В кавычках — это строки (текст), а не числа. Знак + для строк означает склеивание, поэтому получается \"52\". Чтобы сложить как числа, строку нужно превратить в число: int(\"5\") + int(\"2\") = 7."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что напечатает этот код?",
+    code: "for i in range(3):\n    print(i, end=\" \")",
+    options: [
+      "1 2 3",
+      "0 1 2",
+      "3 3 3",
+      "0 1 2 3"
+    ],
+    correct: 1,
+    why: "range(3) — это 0, 1, 2: счёт всегда начинается с нуля, а число в скобках не входит в набор. Это одна из самых частых ошибок у новичков."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что будет в переменной x после выполнения этого кода?",
+    code: "x = 7\nx = x + 3",
+    options: [
+      "x + 3",
+      "10",
+      "Ошибку",
+      "7"
+    ],
+    correct: 1,
+    why: "Сначала в x записали 7. Затем взяли старое значение (7), прибавили 3 и записали результат обратно: x = 10. Знак = в программировании — это не равенство, а присваивание: «положи справа налево»."
+  },
+  {
+    topic: "Python: основы",
+    text: "Что напечатает этот код?",
+    code: "print(\"Мир\" * 2)",
+    options: [
+      "МирМир",
+      "Мир2",
+      "Ошибка: текст нельзя умножать",
+      "4"
+    ],
+    correct: 0,
+    why: "Знак * для строк означает повторение: \"Мир\" * 2 даёт \"МирМир\". Умножить строку на строку нельзя — это будет TypeError."
+  },
+  {
+    topic: "Python: основы",
+    text: "Чем в Python выделяют тело цикла или условия?",
+    options: [
+      "Точкой с запятой",
+      "Отступом в начале строки",
+      "Фигурными скобками { }",
+      "Словами begin и end"
+    ],
+    correct: 1,
+    why: "В Python отступы — это часть синтаксиса: обычно 4 пробела. Всё, что написано с одинаковым отступом после строки с двоеточием, считается телом цикла или условия."
+  },
+  {
+    topic: "Списки",
+    text: "Что выведет этот код?",
+    code: "a = [10, 20, 30]\nprint(a[2])",
+    options: [
+      "30",
+      "Ошибку",
+      "20",
+      "10"
+    ],
+    correct: 0,
+    why: "Нумерация элементов списка начинается с нуля: a[0] = 10, a[1] = 20, a[2] = 30. Поэтому a[2] — это третий по счёту элемент, то есть 30."
+  },
+  {
+    topic: "Списки",
+    text: "Что выведет этот код?",
+    code: "a = [5, 10, 15]\nprint(len(a))",
+    options: [
+      "Ошибку",
+      "15",
+      "2",
+      "3"
+    ],
+    correct: 3,
+    why: "len возвращает количество элементов списка — здесь их три. Не путайте с последним элементом (a[-1] = 15) и с наибольшим индексом (он равен 2)."
+  },
+  {
+    topic: "Списки",
+    text: "Какой метод добавляет элемент в конец списка a?",
+    options: [
+      "a.add(5)",
+      "a.insert(5)",
+      "a.append(5)",
+      "a.push(5)"
+    ],
+    correct: 2,
+    why: "Правильный метод — append: a.append(5). Методов push и add у списка в Python нет, а insert вставляет элемент по указанному номеру позиции: a.insert(0, 5)."
+  },
+  {
+    topic: "Списки",
+    text: "Как получить первый элемент списка a?",
+    options: [
+      "a.first()",
+      "a[1]",
+      "a[-1]",
+      "a[0]"
+    ],
+    correct: 3,
+    why: "Нумерация в Python начинается с нуля, поэтому первый элемент — это a[0]. Запись a[1] даст второй элемент, а a[-1] — последний."
+  },
+  {
+    topic: "Функции",
+    text: "Что напечатает этот код?",
+    code: "def double(x):\n    return x * 2\n\nprint(double(5))",
+    options: [
+      "10",
+      "5",
+      "x * 2",
+      "Ничего, код с ошибкой"
+    ],
+    correct: 0,
+    why: "Функция double принимает значение 5, умножает его на 2 и с помощью return возвращает результат 10; print его печатает. Без return функция вернула бы None — «ничего»."
+  },
+  {
+    topic: "Функции",
+    text: "Что напечатает этот код?",
+    code: "print(int(\"12\") + 3)",
+    options: [
+      "Ошибку",
+      "15",
+      "None",
+      "123"
+    ],
+    correct: 1,
+    why: "int(\"12\") превращает строку \"12\" в число 12, дальше обычное сложение: 12 + 3 = 15. Без int(\"12\") было бы склеивание строк, а int(\"abc\") вызвал бы ошибку ValueError."
+  },
+  {
+    topic: "Функции",
+    text: "Что напечатает этот код?",
+    code: "def greet(name):\n    return \"Привет, \" + name\n\nprint(greet(\"Аня\"))",
+    options: [
+      "Аня",
+      "Ошибку",
+      "Привет, Аня",
+      "Привет, name"
+    ],
+    correct: 2,
+    why: "Значение \"Аня\" передаётся в функцию и попадает в параметр name. Внутри функции склеиваются строки, и return возвращает результат наружу — его и печатает print."
+  },
+  {
+    topic: "Функции",
+    text: "Зачем в функции нужен оператор return?",
+    options: [
+      "Чтобы создать переменную",
+      "Чтобы вернуть результат туда, где функцию вызвали",
+      "Чтобы завершить всю программу",
+      "Чтобы напечатать результат на экране"
+    ],
+    correct: 1,
+    why: "return возвращает значение в точку вызова, и работа функции на этом заканчивается. Печатает результат print, а не return: функция может вернуть число, а на экран его выведут отдельно. Без return функция возвращает None."
+  },
+  {
+    topic: "Отладка",
+    text: "Что произойдёт при запуске этого кода?",
+    code: "print(неизвестная_переменная)",
+    options: [
+      "Ничего не произойдёт",
+      "Создаст новую переменную",
+      "Напечатает 0",
+      "Ошибка: переменная не определена (NameError)"
+    ],
+    correct: 3,
+    why: "Python не знает такого имени и сообщает: NameError: name 'неизвестная_переменная' is not defined. Это одна из самых частых ошибок новичков — обычно причина в опечатке или в том, что переменную забыли создать."
+  }
+];
+
+/* =========================================================================
+   СОСТОЯНИЕ
+   ========================================================================= */
+const LETTERS = ["A", "B", "C", "D"];
+const STORAGE_KEY = "informatics-test-draft-v2";
+const state = { answers: new Array(QUESTIONS.length).fill(null), index: 0, screen: "start" };
+
+const $ = (id) => document.getElementById(id);
+
+function saveDraft(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers: state.answers, index: state.index }));
+  }catch(e){ /* приватный режим — просто игнорируем */ }
+}
+function loadDraft(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    const d = JSON.parse(raw);
+    if(!d || !Array.isArray(d.answers) || d.answers.length !== QUESTIONS.length) return null;
+    return d;
+  }catch(e){ return null; }
+}
+function clearDraft(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} }
+
+/* =========================================================================
+   РЕНДЕР
+   ========================================================================= */
+function renderKeys(listId){
+  const ol = $(listId);
+  ol.innerHTML = QUESTIONS.map((q, i) =>
+    `<li><b>${LETTERS[q.correct]}</b> <span class="muted">${escapeHtml(q.topic)}</span></li>`
+  ).join("");
+}
+
+function showScreen(name){
+  state.screen = name;
+  $("screenStart").style.display  = name === "start"  ? "" : "none";
+  $("screenQuiz").style.display   = name === "quiz"   ? "" : "none";
+  $("screenResult").style.display = name === "result" ? "" : "none";
+  if (typeof window.scrollTo === "function") window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function renderQuestion(){
+  const i = state.index;
+  const q = QUESTIONS[i];
+  const answered = state.answers.filter(a => a !== null).length;
+
+  $("progFill").style.width = ((i) / QUESTIONS.length * 100) + "%";
+  $("progLeft").textContent = `Вопрос ${i + 1} из ${QUESTIONS.length}`;
+  $("progRight").textContent = `Отвечено: ${answered} из ${QUESTIONS.length}`;
+  $("qNum").textContent = String(i + 1).padStart(2, "0");
+  $("qTopic").textContent = q.topic;
+  $("qText").innerHTML = escapeHtml(q.text);
+  $("qCode").innerHTML = q.code ? `<pre class="code">${escapeHtml(q.code)}</pre>` : "";
+
+  $("qOpts").innerHTML = q.options.map((opt, k) => `
+    <label class="opt ${state.answers[i] === k ? "sel" : ""}">
+      <input type="radio" name="q${i}" value="${k}" ${state.answers[i] === k ? "checked" : ""}>
+      <span class="key">${LETTERS[k]}</span>
+      <span>${escapeHtml(opt)}</span>
+    </label>`).join("");
+
+  $("qOpts").querySelectorAll("input").forEach(inp => {
+    inp.addEventListener("change", () => {
+      state.answers[i] = Number(inp.value);
+      saveDraft();
+      renderQuestion();
+    });
+  });
+
+  $("btnPrev").disabled = (i === 0);
+  const isLast = (i === QUESTIONS.length - 1);
+  $("btnNext").style.display   = isLast ? "none" : "";
+  $("btnFinish").style.display = isLast ? "" : "none";
+
+  const left = QUESTIONS.length - answered;
+  $("quizHint").textContent = left === 0
+    ? "Отвечено на все вопросы. Жмите «Завершить»."
+    : `Осталось без ответа: ${left}. Можно пропустить и вернуться потом.`;
+}
+
+function topicStats(){
+  const map = new Map();
+  QUESTIONS.forEach((q, i) => {
+    if(!map.has(q.topic)) map.set(q.topic, { total: 0, correct: 0, wrongIdx: [] });
+    const t = map.get(q.topic);
+    t.total++;
+    if(state.answers[i] === q.correct) t.correct++;
+    else t.wrongIdx.push(i);
+  });
+  return [...map.entries()].map(([topic, v]) => ({ topic, ...v, pct: v.correct / v.total }));
+}
+
+function verdictFor(score, total){
+  const p = score / total;
+  if(p >= 0.9) return { t: "Отличный уровень", s: "База закрыта — можно спокойно идти дальше: циклы с условиями, словари, функции с параметрами, простые проекты.", c: "#12805c" };
+  if(p >= 0.7) return { t: "Хорошая база", s: "Основное усвоено, отдельные темы нужно отработать на практике.", c: "#2b5cf6" };
+  if(p >= 0.45) return { t: "База есть, но с пробелами", s: "Нормальная стартовая точка: сначала закрываем красные темы, потом идём дальше.", c: "#9a6700" };
+  if(p >= 0.2) return { t: "Много пробелов — начнём с базы", s: "Планируем курс с самых основ: что такое бит и байт, двоичная система, переменные и условия.", c: "#c02637" };
+  return { t: "Начинаем с азов", s: "Это не приговор, а план: идём по темам снизу вверх, без спешки.", c: "#c02637" };
+}
+
+function renderResults(){
+  const total = QUESTIONS.length;
+  let score = 0;
+  QUESTIONS.forEach((q, i) => { if(state.answers[i] === q.correct) score++; });
+  const pct = Math.round(score / total * 100);
+  const v = verdictFor(score, total);
+
+  const ring = $("ring");
+  ring.style.setProperty("--p", pct);
+  ring.style.setProperty("--ringcol", v.c);
+  $("scoreNum").textContent = `${score}/${total}`;
+  $("scorePct").textContent = pct + "%";
+  $("verdict").textContent = v.t;
+  $("verdictSub").textContent = v.s;
+
+  // разбивка по темам
+  const stats = topicStats().sort((a, b) => a.pct - b.pct || a.topic.localeCompare(b.topic, "ru"));
+  $("topicBreak").innerHTML = stats.map(s => {
+    const cls = s.pct === 0 ? "gap" : (s.pct < 1 ? "mid" : "ok");
+    const label = s.pct === 0 ? "пробел" : (s.pct < 1 ? "частично" : "закрыто");
+    const col = s.pct === 0 ? "#c02637" : (s.pct < 1 ? "#c78a00" : "#12805c");
+    return `<div class="topicbar">
+      <div class="t"><span>${escapeHtml(s.topic)} <span class="tag ${cls}">${label}</span></span>
+      <span class="muted">${s.correct}/${s.total}</span></div>
+      <div class="tr"><i style="width:${Math.round(s.pct * 100)}%;background:${col}"></i></div>
+    </div>`;
+  }).join("");
+
+  // детальный разбор
+  $("reviewList").innerHTML = QUESTIONS.map((q, i) => {
+    const given = state.answers[i];
+    const isRight = given === q.correct;
+    const mark = isRight ? "ok" : "bad";
+    const symbol = isRight ? "✓" : "✕";
+    const givenText = given === null ? "нет ответа (пропущен)" : `${LETTERS[given]}. ${escapeHtml(q.options[given])}`;
+    return `<details class="rev" data-right="${isRight ? 1 : 0}">
+      <summary>
+        <span class="mark ${mark}">${symbol}</span>
+        <span>
+          <b>${i + 1}. ${escapeHtml(q.topic)}</b><br>
+          <span class="small">${escapeHtml(q.text)}</span>
+        </span>
+      </summary>
+      <div class="sumbody">
+        ${q.code ? `<pre class="code">${escapeHtml(q.code)}</pre>` : ""}
+        <div class="answerline">Ваш ответ: <b class="${mark}">${givenText}</b></div>
+        ${isRight ? "" : `<div class="answerline">Правильный ответ: <b class="ok">${LETTERS[q.correct]}. ${escapeHtml(q.options[q.correct])}</b></div>`}
+        <div class="why"><b>Пояснение</b>${escapeHtml(q.why)}</div>
+      </div>
+    </details>`;
+  }).join("");
+
+  // план на следующий урок
+  const gaps = stats.filter(s => s.pct < 1);
+  $("planList").innerHTML = gaps.length
+    ? gaps.map(s => `<li><b>${escapeHtml(s.topic)}</b> — ${s.correct}/${s.total}. Вопросы: ${s.wrongIdx.map(i => i + 1).join(", ")}.</li>`).join("")
+    : `<li>Все темы закрыты — можно переходить к более сложному материалу.</li>`;
+  $("planCard").style.display = "";
+
+  renderKeys("keyListResult");
+  showScreen("result");
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+/* =========================================================================
+   СОБЫТИЯ
+   ========================================================================= */
+function startTest(){
+  saveDraft();
+  showScreen("quiz");
+  renderQuestion();
+}
+
+$("btnStart").addEventListener("click", startTest);
+$("btnNext").addEventListener("click", () => { if(state.index < QUESTIONS.length - 1){ state.index++; saveDraft(); renderQuestion(); } });
+$("btnPrev").addEventListener("click", () => { if(state.index > 0){ state.index--; saveDraft(); renderQuestion(); } });
+$("btnFinish").addEventListener("click", () => { clearDraft(); renderResults(); });
+$("btnRestart").addEventListener("click", () => {
+  clearDraft();
+  state.answers = new Array(QUESTIONS.length).fill(null);
+  state.index = 0;
+  showScreen("start");
+});
+$("btnPrint").addEventListener("click", () => {
+  document.querySelectorAll("#reviewList details").forEach(d => d.open = true);
+  window.print();
+});
+$("btnCopy").addEventListener("click", async () => {
+  const total = QUESTIONS.length;
+  let score = 0;
+  QUESTIONS.forEach((q, i) => { if(state.answers[i] === q.correct) score++; });
+  const stats = topicStats().sort((a, b) => a.pct - b.pct);
+  const lines = [
+    `Диагностика по информатике — пробный урок`,
+    `Результат: ${score}/${total} (${Math.round(score / total * 100)}%)`,
+    "",
+    "По темам:",
+    ...stats.map(s => `  ${s.topic}: ${s.correct}/${s.total}`),
+    "",
+    "Ошибки:",
+    ...QUESTIONS.map((q, i) => {
+      const g = state.answers[i];
+      if(g === q.correct) return null;
+      return `  ${i + 1}. ${q.topic} — ваш ответ: ${g === null ? "нет" : LETTERS[g]}, верно: ${LETTERS[q.correct]}`;
+    }).filter(Boolean)
+  ];
+  const text = lines.join("\n");
+  try{
+    await navigator.clipboard.writeText(text);
+    $("btnCopy").textContent = "Скопировано ✓";
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); $("btnCopy").textContent = "Скопировано ✓"; }
+    catch(e2){ $("btnCopy").textContent = "Не удалось скопировать"; }
+    ta.remove();
+  }
+  setTimeout(() => { $("btnCopy").textContent = "Скопировать отчёт"; }, 1800);
+});
+$("btnToggleKey").addEventListener("click", () => {
+  const w = $("keyWrap");
+  w.style.display = w.style.display === "none" ? "" : "none";
+});
+$("btnOpenBad").addEventListener("click", () => {
+  document.querySelectorAll("#reviewList details").forEach(d => { d.open = d.dataset.right === "0"; });
+});
+$("btnOpenAll").addEventListener("click", () => {
+  document.querySelectorAll("#reviewList details").forEach(d => d.open = true);
+});
+$("btnCloseAll").addEventListener("click", () => {
+  document.querySelectorAll("#reviewList details").forEach(d => d.open = false);
+});
+
+document.addEventListener("keydown", e => {
+  if(state.screen !== "quiz") return;
+  const tag = (e.target && e.target.tagName) || "";
+  if(tag === "INPUT" && e.target.type === "text") return;
+  if(e.key >= "1" && e.key <= "4"){
+    const k = Number(e.key) - 1;
+    if(k < QUESTIONS[state.index].options.length){
+      state.answers[state.index] = k;
+      saveDraft(); renderQuestion();
+    }
+  }
+  if(e.key === "ArrowRight" && state.index < QUESTIONS.length - 1){ state.index++; saveDraft(); renderQuestion(); }
+  if(e.key === "ArrowLeft" && state.index > 0){ state.index--; saveDraft(); renderQuestion(); }
+});
+
+/* =========================================================================
+   СТАРТ + автотест
+   ========================================================================= */
+$("chipQ").textContent = QUESTIONS.length + " вопросов";
+
+const draft = loadDraft();
+if(draft && draft.answers.some(a => a !== null)){
+  state.answers = draft.answers;
+  state.index = Math.min(Math.max(0, draft.index || 0), QUESTIONS.length - 1);
+  showScreen("quiz");
+  renderQuestion();
+}else{
+  showScreen("start");
+}
+
+</script>
+
+<script>
+/* Автотест интерфейса: вызывается при ?selftest или вручную из консоли. */
+window.__runSelfTest = function(){
+  const log = [];
+  const Q = QUESTIONS;
+  const fire = (el, ev) => el.dispatchEvent(new Event(ev, { bubbles: true }));
+
+  function clickCorrectFor(i){
+    state.index = i;
+    renderQuestion();
+    const inputs = document.querySelectorAll("#qOpts input");
+    const right = inputs[Q[i].correct];
+    right.checked = true;
+    fire(right, "change");
+  }
+  function clickOption(i, k){
+    state.index = i;
+    renderQuestion();
+    const inputs = document.querySelectorAll("#qOpts input");
+    inputs[k].checked = true;
+    fire(inputs[k], "change");
+  }
+  function score(){
+    let s = 0;
+    Q.forEach((q, i) => { if(state.answers[i] === q.correct) s++; });
+    return s;
+  }
+
+  // 1) банк вопросов корректен
+  const badIdx = Q.map((q, i) => Number.isInteger(q.correct) && q.correct >= 0 && q.correct < q.options.length ? -1 : i).filter(i => i >= 0);
+  const dupOpts = Q.map((q, i) => new Set(q.options).size === q.options.length ? -1 : i).filter(i => i >= 0);
+  log.push(["вопросов в банке", Q.length]);
+  log.push(["некорректный индекс ответа", badIdx.length ? badIdx.join(",") : "нет"]);
+  log.push(["дубли вариантов", dupOpts.length ? dupOpts.join(",") : "нет"]);
+
+  // 2) все правильные -> 20/20
+  state.answers = new Array(Q.length).fill(null);
+  for(let i = 0; i < Q.length; i++) clickCorrectFor(i);
+  const full = score();
+  log.push(["все правильные -> счёт", full + "/" + Q.length]);
+
+  document.getElementById("btnFinish").click();
+  const shown = document.getElementById("scoreNum").textContent;
+  log.push(["отображаемый счёт", shown]);
+
+  const details = document.querySelectorAll("#reviewList details");
+  const okCount = [...details].filter(d => d.dataset.right === "1").length;
+  log.push(["зелёных вопросов в разборе", okCount + "/" + details.length]);
+  log.push(["блоков тем", document.querySelectorAll("#topicBreak .topicbar").length]);
+
+  // 3) все неправильные -> 0/20
+  state.answers = new Array(Q.length).fill(null);
+  for(let i = 0; i < Q.length; i++) clickOption(i, (Q[i].correct + 1) % Q[i].options.length);
+  const zero = score();
+  log.push(["все неправильные -> счёт", zero + "/" + Q.length]);
+  document.getElementById("btnFinish").click();
+  log.push(["отображаемый счёт", document.getElementById("scoreNum").textContent]);
+  const badCount = [...document.querySelectorAll("#reviewList details")].filter(d => d.dataset.right === "0").length;
+  log.push(["красных вопросов в разборе", badCount]);
+
+  // 4) пропуск ответов + навигация
+  state.answers = new Array(Q.length).fill(null);
+  state.index = 0;
+  showScreen("quiz");
+  renderQuestion();
+  document.getElementById("btnNext").click();
+  document.getElementById("btnNext").click();
+  log.push(["навигация: индекс после 2×«Дальше»", state.index]);
+  document.getElementById("btnPrev").click();
+  log.push(["навигация: индекс после «Назад»", state.index]);
+  log.push(["кнопка «Назад» заблокирована на 1-м вопросе", (function(){ state.index = 0; renderQuestion(); return document.getElementById("btnPrev").disabled; })()]);
+  clickOption(0, 2);
+  log.push(["сохранён ли ответ в черновике", (function(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)).answers[0]; }catch(e){ return "n/a"; } })()]);
+
+  // 5) горячая клавиша
+  state.answers = new Array(Q.length).fill(null);
+  state.index = 3; renderQuestion();
+  document.dispatchEvent(new KeyboardEvent("keydown", { key: "2", bubbles: true }));
+  log.push(["клавиша «2» выбрала вариант", state.answers[3]]);
+
+  // 6) восстановление
+  state.answers = new Array(Q.length).fill(null);
+  clearDraft();
+  clickOption(5, 1);
+  log.push(["черновик после ответа на 6-й вопрос", JSON.parse(localStorage.getItem(STORAGE_KEY)).answers[5]]);
+
+  // сброс в исходное состояние
+  clearDraft();
+  state.answers = new Array(Q.length).fill(null);
+  state.index = 0;
+  showScreen("start");
+
+  const table = log.map(r => r.join(" = ")).join("\n");
+  const pass = full === Q.length && zero === 0 && okCount === Q.length && badCount === Q.length
+    && badIdx.length === 0 && dupOpts.length === 0 && state.index === 0;
+  console.log("%cSELFTEST " + (pass ? "PASS" : "FAIL"), "color:#fff;background:" + (pass ? "#12805c" : "#c0263c") + ";padding:2px 6px;border-radius:4px");
+  console.log(table);
+  const pre = document.createElement("pre");
+  pre.id = "selftestOut";
+  pre.style.cssText = "position:fixed;left:8px;top:8px;z-index:9999;background:#101725;color:#e6ecff;padding:12px;border-radius:10px;font-size:12px;max-height:90vh;overflow:auto;white-space:pre-wrap";
+  pre.textContent = "SELFTEST " + (pass ? "PASS" : "FAIL") + "\n" + table;
+  document.body.appendChild(pre);
+  return { pass, log };
+};
+
+if(location.search.includes("selftest")){ window.__runSelfTest(); }
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a51afbd34e84b6a8',t:'MTc5MzIwMTQ0Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
