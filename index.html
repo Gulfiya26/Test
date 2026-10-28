@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Диагностика пробелов · Информатика и программирование · 1 курс колледжа</title>
+<title>Диагностика пробелов · Информатика и программирование · 1 курс</title>
 <style>
   :root{
     --bg:#f4f6fb; --card:#ffffff; --ink:#141a2b; --muted:#61708a;
@@ -143,23 +143,18 @@
     <ul class="tight small">
       <li>Один вариант ответа в каждом вопросе. Можно возвращаться назад и менять ответ.</li>
       <li>Темы: устройство компьютера, двоичная система, логика, блок-схемы, списки, функции и базовый синтаксис Python.</li>
-      <li>Если не знаете — выбирайте вариант наугад и <b>пометьте это для себя</b>: угаданный ответ и знаемый ответ в отчёте выглядят одинаково, а пробел важнее балла.</li>
+      <li>Если не знаете — пропускаете и <b>пометьте это для себя</b>: угаданный ответ и знаемый ответ в отчёте выглядят одинаково, а пробел важнее балла.</li>
       <li>Черновик ответов сохраняется в браузере: случайное обновление страницы не сотрёт прогресс.</li>
     </ul>
     <div class="divider"></div>
-    <label class="small muted" for="nameInput" style="display:block;margin-bottom:6px">Имя ученицы (попадёт в отчёт, можно не заполнять)</label>
-    <input type="text" id="nameInput" placeholder="Например, Алина" autocomplete="off" maxlength="60">
+    
     <div class="row" style="margin-top:16px">
       <button class="btn" id="btnStart">Начать тест</button>
-      <button class="btn ghost" id="btnStartBlank">Без имени</button>
+ 
       <span class="spacer"></span>
       <span class="small muted">Горячие клавиши: <kbd>1</kbd>–<kbd>4</kbd> выбор · <kbd>→</kbd> дальше · <kbd>←</kbd> назад</span>
     </div>
     <div class="divider"></div>
-    <details id="teacherKeyStart" class="noprint">
-      <summary style="cursor:pointer;font-weight:650;color:var(--muted)">👩‍🏫 Ключ ответов для преподавателя (показать)</summary>
-      <div class="keybox" style="margin-top:12px"><ol id="keyListStart"></ol></div>
-    </details>
   </section>
 
   <!-- ============ ВОПРОС ============ -->
