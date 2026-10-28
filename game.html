@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Двоичный тренажёр · игра на перевод чисел</title>
+<style>
+  :root{
+    --bg:#0d1220; --bg2:#121a2e; --card:#161f36;
+    --ink:#eaf0ff; --muted:#8fa0c4; --line:#2a3654;
+    --acc:#5b8cff; --acc2:#8b5cf6; --ok:#25d39a; --bad:#ff5d73; --warn:#ffbf47;
+    --radius:18px; --shadow:0 20px 50px -20px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    min-height:100vh;color:var(--ink);
+    background:radial-gradient(1200px 700px at 15% -10%, #1d2b52 0%, transparent 55%),
+               radial-gradient(900px 600px at 110% 10%, #2a1d4d 0%, transparent 50%),
+               var(--bg);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 70px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .dot{width:13px;height:13px;border-radius:5px;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+  .link{color:var(--muted);font-size:13.5px;text-decoration:none;border:1px solid var(--line);padding:5px 12px;border-radius:999px}
+  .link:hover{color:var(--ink);border-color:var(--acc)}
+  .card{background:linear-gradient(180deg,var(--card) 0%,var(--bg2) 100%);border:1px solid var(--line);
+        border-radius:var(--radius);box-shadow:var(--shadow);padding:24px}
+  h1{font-size:30px;line-height:1.2;margin:0 0 8px}
+  h2{font-size:22px;margin:0 0 12px}
+  .muted{color:var(--muted)}
+  .small{font-size:14px}
+  .btn{appearance:none;border:1px solid transparent;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;
+       font-weight:750;font-size:16px;padding:14px 22px;border-radius:14px;cursor:pointer;transition:.14s}
+  .btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+  .btn.ghost:hover{background:#1e2942;border-color:var(--acc)}
+  .btn.sm{padding:9px 15px;font-size:14px;border-radius:11px}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+  .divider{height:1px;background:var(--line);margin:20px 0}
+  .label{font-size:12.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+  kbd{border:1px solid var(--line);border-radius:5px;padding:0 5px;background:#1b2540;font-size:12px}
+
+  .modes{display:grid;gap:10px}
+  .mode{display:flex;gap:14px;align-items:center;border:1.5px solid var(--line);background:#151e35;border-radius:14px;
+        padding:14px 16px;cursor:pointer;transition:.14s;text-align:left;color:inherit;font:inherit;width:100%}
+  .mode:hover{border-color:var(--acc);background:#182341}
+  .mode.sel{border-color:var(--acc);background:#1b2647}
+  .mode .ic{flex:0 0 46px;height:42px;border-radius:12px;background:#22304f;display:flex;align-items:center;
+            justify-content:center;font-size:14px;font-weight:800;font-family:ui-monospace,Menlo,monospace}
+  .mode b{display:block;font-size:16px}
+  .mode .sub{font-size:13.5px;color:var(--muted)}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{border:1.5px solid var(--line);background:#151e35;color:var(--ink);border-radius:999px;padding:8px 15px;
+        font-size:14px;cursor:pointer;transition:.14s;font-weight:600}
+  .chip:hover{border-color:var(--acc)}
+  .chip.sel{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff}
+  .switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+  .switch input{appearance:none;width:44px;height:25px;border-radius:999px;background:#2a3654;position:relative;
+                cursor:pointer;transition:.15s;flex:0 0 auto}
+  .switch input::after{content:"";position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;
+                       background:#8fa0c4;transition:.15s}
+  .switch input:checked{background:var(--acc)}
+  .switch input:checked::after{left:22px;background:#fff}
+
+  .hud{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+  .stat{flex:1 1 100px;background:#131c31;border:1px solid var(--line);border-radius:13px;padding:9px 13px;min-width:92px}
+  .stat .k{font-size:11.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+  .stat .v{font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat .v.time{color:var(--warn)}
+  .stat .v.streak{color:var(--ok)}
+  .task{text-align:center;padding:6px 0 2px}
+  .task .dir{font-size:13.5px;color:var(--muted);letter-spacing:.4px}
+  .bignum{font-size:64px;font-weight:800;letter-spacing:2px;margin:6px 0 10px;font-variant-numeric:tabular-nums;
+          font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;word-break:break-all}
+  .answer{width:100%;text-align:center;font-size:30px;font-weight:700;letter-spacing:4px;padding:13px;
+          background:#0f1729;border:2px solid var(--line);border-radius:14px;color:var(--ink);
+          font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .answer:focus{outline:none;border-color:var(--acc)}
+  .answer.ok{border-color:var(--ok);background:#0e2a24}
+  .answer.bad{border-color:var(--bad);background:#2a1119}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px auto 0;max-width:330px}
+  .pad button{padding:14px 0;font-size:21px;font-weight:800;border-radius:13px;border:1px solid var(--line);
+              background:#1b2540;color:var(--ink);cursor:pointer;font-family:ui-monospace,Menlo,monospace;transition:.1s}
+  .pad button:hover{background:#243154}
+  .pad button:active{transform:scale(.96)}
+  .feed{min-height:92px;margin-top:14px;border-radius:13px;padding:12px 14px;border:1px solid var(--line);background:#131c31}
+  .feed.ok{border-color:#1f6b56;background:#0e2a24}
+  .feed.bad{border-color:#7a2436;background:#2a1119}
+  .feed .t{font-weight:800;font-size:16px}
+  .feed.ok .t{color:var(--ok)}
+  .feed.bad .t{color:var(--bad)}
+  .feed .d{font-size:14.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+  .feed .d b{color:var(--ink)}
+  .hintline{font-size:14.5px;color:var(--warn);margin-top:6px;font-variant-numeric:tabular-nums}
+  .timerbar{height:6px;background:#22304f;border-radius:999px;overflow:hidden;margin-bottom:16px}
+  .timerbar > i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),var(--warn));width:100%}
+
+  .score-big{font-size:52px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+  @media (max-width:640px){.grid4{grid-template-columns:repeat(2,1fr)}.bignum{font-size:46px}}
+  .miss{border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:9px;background:#131c31}
+  .miss .q{font-weight:700;font-variant-numeric:tabular-nums}
+  .miss .a{font-size:14px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+  .miss .a b{color:var(--ok)}
+  .footer{margin-top:20px;text-align:center;font-size:13px;color:var(--muted)}
+  @media print{.noprint{display:none !important}body{background:#fff;color:#000}.card{box-shadow:none;border-color:#bbb}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="dot"></span> Двоичный тренажёр</div>
+    <a class="link noprint" href="test.html">Диагностика пробелов →</a>
+  </header>
+
+  <!-- ================= МЕНЮ ================= -->
+  <section id="screenMenu" class="card">
+    <h1>Перевод чисел: 10 ⇄ 2</h1>
+    <p class="muted">Тренажёр-игра: переводим числа из десятичной системы в двоичную и обратно. Очки, серия без ошибок и разбор каждой ошибки в конце.</p>
+    <div class="divider"></div>
+
+    <div class="label">Режим</div>
+    <div class="modes" id="modeList">
+      <button class="mode" data-mode="dec2bin">
+        <span class="ic">10→2</span>
+        <span><b>Из десятичной в двоичную</b><span class="sub">Дано число — записать его нулями и единицами</span></span>
+      </button>
+      <button class="mode" data-mode="bin2dec">
+        <span class="ic">2→10</span>
+        <span><b>Из двоичной в десятичную</b><span class="sub">Дан код — посчитать, какое это число</span></span>
+      </button>
+      <button class="mode" data-mode="mix">
+        <span class="ic">10⇄2</span>
+        <span><b>Микс</b><span class="sub">Направление меняется случайно — самый полезный режим</span></span>
+      </button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="label">Сложность</div>
+    <div class="chips" id="diffList">
+      <button class="chip" data-diff="easy">Лёгкая · 1–7</button>
+      <button class="chip" data-diff="mid">Средняя · 8–31</button>
+      <button class="chip" data-diff="hard">Сложная · 32–255</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="row" style="gap:20px">
+      <label class="switch"><input type="checkbox" id="optTimer" checked><span>На время · 60 секунд</span></label>
+      <label class="switch"><input type="checkbox" id="optHint" checked><span>Подсказка за 5 очков</span></label>
+      <label class="switch"><input type="checkbox" id="optSound" checked><span>Звук</span></label>
+    </div>
+
+    <div class="divider"></div>
+    <div class="row">
+      <button class="btn" id="btnPlay">Играть</button>
+      <span class="spacer"></span>
+      <span class="small muted" id="bestLine">Рекорд: —</span>
+    </div>
+    <p class="small muted" style="margin:14px 0 0">
+      Как играть: набирайте ответ с клавиатуры или кнопками на экране, <kbd>Enter</kbd> — проверить.
+      За верный ответ — очки, серия подряд увеличивает множитель до ×3. Ошиблись — сразу увидите правильный ответ и разложение по разрядам.
+    </p>
+  </section>
+
+  <!-- ================= ИГРА ================= -->
+  <section id="screenGame" class="card" style="display:none">
+    <div class="timerbar" id="timerBarWrap"><i id="timerFill"></i></div>
+    <div class="hud">
+      <div class="stat"><div class="k">Очки</div><div class="v" id="hudScore">0</div></div>
+      <div class="stat"><div class="k">Серия</div><div class="v streak" id="hudStreak">0</div></div>
+      <div class="stat"><div class="k">Верно</div><div class="v" id="hudRight">0/0</div></div>
+      <div class="stat" id="hudTimeWrap"><div class="k">Время</div><div class="v time" id="hudTime">60</div></div>
+    </div>
+
+    <div class="task">
+      <div class="dir" id="taskDir">Переведите в двоичную систему</div>
+      <div class="bignum" id="taskNum">—</div>
+    </div>
+
+    <input class="answer mono" id="answer" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="…">
+    <div class="pad noprint" id="pad"></div>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="btnCheck">Проверить</button>
+      <button class="btn ghost sm" id="btnHint">Подсказка (−5)</button>
+      <span class="spacer"></span>
+      <button class="btn ghost sm" id="btnStop">Завершить</button>
+    </div>
+
+    <div class="feed" id="feed">
+      <div class="t">Поехали!</div>
+      <div class="d">Первый вопрос уже на экране. Ответ можно набирать с клавиатуры.</div>
+    </div>
+  </section>
+
+  <!-- ================= РЕЗУЛЬТАТЫ ================= -->
+  <section id="screenResult" style="display:none">
+    <div class="card">
+      <div class="row">
+        <div>
+          <div class="label">Итог, очки</div>
+          <div class="score-big" id="resScore">0</div>
+          <div class="muted small" id="resBest"></div>
+        </div>
+        <span class="spacer"></span>
+        <div style="text-align:right">
+          <div class="label">Точность</div>
+          <div class="score-big" id="resAcc">0%</div>
+        </div>
+      </div>
+      <div class="grid4">
+        <div class="stat"><div class="k">Верно</div><div class="v" id="resRight">0</div></div>
+        <div class="stat"><div class="k">Ошибок</div><div class="v" id="resWrong">0</div></div>
+        <div class="stat"><div class="k">Лучшая серия</div><div class="v streak" id="resStreak">0</div></div>
+        <div class="stat"><div class="k">Подсказок</div><div class="v" id="resHints">0</div></div>
+      </div>
+      <div class="row noprint">
+        <button class="btn" id="btnAgain">Ещё раз</button>
+        <button class="btn ghost" id="btnMenu">В меню</button>
+        <span class="spacer"></span>
+        <button class="btn ghost sm" id="btnPrint">Печать</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>Разбор ошибок</h2>
+      <p class="muted small" id="missIntro">Здесь появятся числа, в которых была ошибка, — с правильным ответом и разложением по разрядам.</p>
+      <div id="missList"></div>
+    </div>
+    <div class="footer noprint">Всё считается локально в браузере, никуда не отправляется.</div>
+  </section>
+</div>
+<script>
+/* =========================================================================
+   НАСТРОЙКИ И СОСТОЯНИЕ
+   ========================================================================= */
+const RANGES = { easy: [1, 7], mid: [8, 31], hard: [32, 255] };
+const MODE_TITLES = {
+  dec2bin: "Из десятичной в двоичную",
+  bin2dec: "Из двоичной в десятичную",
+  mix: "Микс 10 ⇄ 2"
+};
+const ROUND_SECONDS = 60;
+const HINT_COST = 5;
+const BASE_POINTS = 10;
+const BEST_KEY = "binary-trainer-best-v1";
+
+const cfg = { mode: "mix", diff: "mid", timer: true, hint: true, sound: true };
+const game = {
+  n: 0, dir: "dec2bin", answer: "", score: 0, streak: 0, bestStreak: 0,
+  right: 0, wrong: 0, hints: 0, asked: 0, missed: [], timeLeft: ROUND_SECONDS,
+  locked: false, shownHint: false, tick: null
+};
+
+const $ = (id) => document.getElementById(id);
+
+/* =========================================================================
+   ЛОГИКА ЧИСЕЛ
+   ========================================================================= */
+function randomInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function toBin(n){ return n.toString(2); }
+function toDec(bin){ return parseInt(bin, 2); }
+
+/** Разложение числа по разрядам: "1·8 + 1·4 + 0·2 + 1·1 = 13" */
+function breakdown(n){
+  const bin = toBin(n);
+  const parts = [];
+  for(let i = 0; i < bin.length; i++){
+    parts.push(`${bin[i]}·${Math.pow(2, bin.length - 1 - i)}`);
+  }
+  return `${parts.join(" + ")} = ${n}`;
+}
+
+/** Подсказка не выдаёт ответ: показывает только веса разрядов */
+function hintFor(n){
+  const bin = toBin(n);
+  const weights = [];
+  for(let i = bin.length - 1; i >= 0; i--) weights.push(Math.pow(2, i));
+  return `В ответе ${bin.length} разряд(а). Веса разрядов слева направо: ${weights.join(", ")}`;
+}
+
+/* =========================================================================
+   ВОПРОСЫ
+   ========================================================================= */
+function nextQuestion(){
+  const [lo, hi] = RANGES[cfg.diff];
+  let n;
+  do { n = randomInt(lo, hi); } while (n === game.n);
+  game.n = n;
+  game.dir = cfg.mode === "mix" ? (Math.random() < 0.5 ? "dec2bin" : "bin2dec") : cfg.mode;
+  game.answer = game.dir === "dec2bin" ? toBin(n) : String(n);
+  game.locked = false;
+  game.shownHint = false;
+
+  $("taskDir").textContent = game.dir === "dec2bin"
+    ? "Переведите в двоичную систему (нули и единицы)"
+    : "Переведите в десятичную систему";
+  $("taskNum").textContent = game.dir === "dec2bin" ? String(n) : toBin(n);
+
+  const a = $("answer");
+  a.value = "";
+  a.className = "answer mono";
+  a.disabled = false;
+  a.focus();
+
+  setPad(game.dir === "dec2bin" ? ["0", "1"] : ["0","1","2","3","4","5","6","7","8","9"]);
+  $("btnCheck").disabled = false;
+  $("btnHint").disabled = !cfg.hint;
+}
+
+function setPad(keys){
+  const cells = keys.map(k => `<button data-k="${k}">${k}</button>`);
+  cells.push(`<button data-k="back">⌫</button>`);
+  $("pad").innerHTML = cells.join("");
+  $("pad").querySelectorAll("button").forEach(b => {
+    b.addEventListener("click", () => {
+      if(game.locked) return;
+      const a = $("answer");
+      if(b.dataset.k === "back") a.value = a.value.slice(0, -1);
+      else a.value += b.dataset.k;
+      a.focus();
+    });
+  });
+}
+
+/* =========================================================================
+   ПРОВЕРКА ОТВЕТА И ОЧКИ
+   ========================================================================= */
+function pointsFor(){
+  const mult = Math.min(1 + game.streak * 0.1, 3);   // серия даёт до ×3
+  let pts = Math.round(BASE_POINTS * mult);
+  if(game.shownHint) pts -= HINT_COST;
+  return Math.max(pts, 1);
+}
+
+function checkAnswer(){
+  if(game.locked) return;
+  const raw = $("answer").value.trim();
+  if(!raw){ $("answer").focus(); return; }
+
+  let ok;
+  if(game.dir === "dec2bin"){
+    if(!/^[01]+$/.test(raw)){
+      showFeed("bad", "Только нули и единицы", "В двоичной записи других цифр не бывает — попробуйте ещё раз.");
+      game.locked = true;
+      setTimeout(() => { game.locked = false; $("answer").value = ""; $("answer").focus(); }, 900);
+      return;
+    }
+    ok = raw.replace(/^0+(?=.)/, "") === toBin(game.n);
+  }else{
+    if(!/^\d+$/.test(raw)){
+      showFeed("bad", "Нужно число", "Введите десятичное число цифрами.");
+      game.locked = true;
+      setTimeout(() => { game.locked = false; $("answer").value = ""; $("answer").focus(); }, 900);
+      return;
+    }
+    ok = String(Number(raw)) === String(game.n);
+  }
+
+  game.locked = true;
+  game.asked++;
+  const bin = toBin(game.n);
+
+  if(ok){
+    const pts = pointsFor();
+    game.score += pts;
+    game.right++;
+    game.streak++;
+    game.bestStreak = Math.max(game.bestStreak, game.streak);
+    beep(true);
+    $("answer").classList.add("ok");
+    showFeed("ok", `Верно! +${pts} очков`, `${game.n} = ${bin}₂ · ${breakdown(game.n)}`);
+  }else{
+    game.wrong++;
+    game.streak = 0;
+    game.missed.push({ n: game.n, dir: game.dir, given: raw });
+    beep(false);
+    $("answer").classList.add("bad");
+    const asked = game.dir === "dec2bin" ? `${game.n} в двоичной` : `${bin}₂ в десятичной`;
+    showFeed("bad", `Неверно. Правильный ответ: ${game.dir === "dec2bin" ? bin : game.n}`,
+             `${asked} · ${breakdown(game.n)}`);
+  }
+  updateHud();
+  setTimeout(() => { if(game.tick || !cfg.timer){ nextQuestion(); resetFeed(); } }, 1700);
+}
+
+function showFeed(kind, title, detail, hint){
+  const f = $("feed");
+  f.className = "feed" + (kind === "ok" ? " ok" : kind === "bad" ? " bad" : "");
+  f.innerHTML = `<div class="t">${escapeHtml(title)}</div><div class="d">${escapeHtml(detail)}</div>` +
+                (hint ? `<div class="hintline">${escapeHtml(hint)}</div>` : "");
+}
+function resetFeed(){
+  const f = $("feed");
+  f.className = "feed";
+  f.innerHTML = `<div class="t">Следующий вопрос</div><div class="d">Набирайте ответ и жмите Enter.</div>`;
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function useHint(){
+  if(!cfg.hint || game.locked) return;
+  game.hints++;
+  game.shownHint = true;
+  showFeed("", "Подсказка", `Стоит ${HINT_COST} очков из этого ответа.`, hintFor(game.n));
+  $("btnHint").disabled = true;
+  $("answer").focus();
+}
+
+/* =========================================================================
+   HUD, ТАЙМЕР, ЗВУК
+   ========================================================================= */
+function updateHud(){
+  $("hudScore").textContent = game.score;
+  $("hudStreak").textContent = game.streak + (game.streak >= 2 ? ` ×${Math.min(1 + game.streak * 0.1, 3).toFixed(1)}` : "");
+  $("hudRight").textContent = `${game.right}/${game.asked}`;
+  $("hudTime").textContent = game.timeLeft;
+}
+
+function startRound(){
+  Object.assign(game, {
+    n: 0, score: 0, streak: 0, bestStreak: 0, right: 0, wrong: 0,
+    hints: 0, asked: 0, missed: [], timeLeft: ROUND_SECONDS, locked: false, shownHint: false
+  });
+  clearInterval(game.tick);
+  game.tick = null;
+  $("timerBarWrap").style.display = cfg.timer ? "" : "none";
+  $("hudTimeWrap").style.display = cfg.timer ? "" : "none";
+  $("timerFill").style.width = "100%";
+  updateHud();
+  showScreen("game");
+  nextQuestion();
+  resetFeed();
+  if(cfg.timer){
+    game.tick = setInterval(() => {
+      game.timeLeft--;
+      $("timerFill").style.width = Math.max(0, game.timeLeft / ROUND_SECONDS * 100) + "%";
+      updateHud();
+      if(game.timeLeft <= 0){ clearInterval(game.tick); game.tick = null; finishRound(); }
+    }, 1000);
+  }
+}
+
+function finishRound(){
+  clearInterval(game.tick);
+  game.tick = null;
+  const key = `${cfg.mode}-${cfg.diff}`;
+  const bests = loadBests();
+  const prev = bests[key] || 0;
+  const isRecord = game.score > prev;
+  if(isRecord){ bests[key] = game.score; saveBests(bests); }
+
+  $("resScore").textContent = game.score;
+  $("resAcc").textContent = game.asked ? Math.round(game.right / game.asked * 100) + "%" : "—";
+  $("resRight").textContent = game.right;
+  $("resWrong").textContent = game.wrong;
+  $("resStreak").textContent = game.bestStreak;
+  $("resHints").textContent = game.hints;
+  $("resBest").textContent = isRecord
+    ? `Новый рекорд в режиме «${MODE_TITLES[cfg.mode]}»!`
+    : `Рекорд в этом режиме: ${prev}`;
+
+  $("missIntro").textContent = game.missed.length
+    ? `Ошибок: ${game.wrong}. Вот числа, на которых споткнулись, — с правильным ответом и разложением по разрядам.`
+    : "Ошибок не было — разбирать нечего. Попробуйте сложность выше или режим «Микс».";
+
+  $("missList").innerHTML = game.missed.map(m => {
+    const bin = toBin(m.n);
+    const asked = m.dir === "dec2bin" ? `${m.n} → двоичная` : `${bin}₂ → десятичная`;
+    return `<div class="miss">
+      <div class="q">${escapeHtml(asked)}</div>
+      <div class="a">Ваш ответ: ${escapeHtml(m.given || "—")} · Правильно: <b>${m.dir === "dec2bin" ? bin : m.n}</b> · ${escapeHtml(breakdown(m.n))}</div>
+    </div>`;
+  }).join("");
+  showScreen("result");
+}
+
+function loadBests(){ try{ return JSON.parse(localStorage.getItem(BEST_KEY)) || {}; }catch(e){ return {}; } }
+function saveBests(b){ try{ localStorage.setItem(BEST_KEY, JSON.stringify(b)); }catch(e){} }
+
+let audioCtx = null;
+function beep(ok){
+  if(!cfg.sound) return;
+  try{
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = ok ? 720 : 200;
+    g.gain.value = 0.05;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.16);
+    o.stop(audioCtx.currentTime + 0.18);
+  }catch(e){ /* звук не критичен */ }
+}
+
+/* =========================================================================
+   ЭКРАНЫ И СОБЫТИЯ
+   ========================================================================= */
+function showScreen(name){
+  $("screenMenu").style.display   = name === "menu"   ? "" : "none";
+  $("screenGame").style.display   = name === "game"   ? "" : "none";
+  $("screenResult").style.display = name === "result" ? "" : "none";
+  if(typeof window.scrollTo === "function") window.scrollTo({ top: 0 });
+}
+
+function paintMenu(){
+  document.querySelectorAll("#modeList .mode").forEach(b => b.classList.toggle("sel", b.dataset.mode === cfg.mode));
+  document.querySelectorAll("#diffList .chip").forEach(b => b.classList.toggle("sel", b.dataset.diff === cfg.diff));
+  const best = loadBests()[`${cfg.mode}-${cfg.diff}`];
+  $("bestLine").textContent = best ? `Рекорд в этом режиме: ${best}` : "Рекорд: ещё не установлен";
+}
+
+document.querySelectorAll("#modeList .mode").forEach(b => {
+  b.addEventListener("click", () => { cfg.mode = b.dataset.mode; paintMenu(); });
+});
+document.querySelectorAll("#diffList .chip").forEach(b => {
+  b.addEventListener("click", () => { cfg.diff = b.dataset.diff; paintMenu(); });
+});
+$("optTimer").addEventListener("change", e => { cfg.timer = e.target.checked; });
+$("optHint").addEventListener("change", e => { cfg.hint = e.target.checked; });
+$("optSound").addEventListener("change", e => { cfg.sound = e.target.checked; });
+$("btnPlay").addEventListener("click", startRound);
+$("btnCheck").addEventListener("click", checkAnswer);
+$("btnHint").addEventListener("click", useHint);
+$("btnStop").addEventListener("click", finishRound);
+$("btnAgain").addEventListener("click", startRound);
+$("btnMenu").addEventListener("click", () => { paintMenu(); showScreen("menu"); });
+$("btnPrint").addEventListener("click", () => window.print());
+
+$("answer").addEventListener("keydown", e => {
+  if(e.key === "Enter"){ e.preventDefault(); checkAnswer(); }
+});
+$("answer").addEventListener("input", () => {
+  const a = $("answer");
+  const strip = game.dir === "dec2bin" ? /[^01]/g : /[^\d]/g;
+  const clean = a.value.replace(strip, "").slice(0, 10);
+  if(clean !== a.value) a.value = clean;
+});
+document.addEventListener("keydown", e => {
+  if($("screenGame").style.display === "none") return;
+  if(document.activeElement === $("answer")) return;
+  if(/^[0-9]$/.test(e.key)){ $("answer").value += e.key; $("answer").focus(); }
+});
+
+paintMenu();
+showScreen("menu");
+</script>
+
+<script>
+/* =========================================================================
+   АВТОТЕСТ ИГРЫ. Вызывается при ?selftest или вручную из консоли.
+   Кликает по настоящим обработчикам страницы и проверяет состояние.
+   ========================================================================= */
+window.__runSelfTest = function(){
+  const log = [];
+  const fail = [];
+  const T = (name, cond, extra) => {
+    log.push((cond ? "OK   " : "FAIL ") + name + (extra !== undefined ? " → " + extra : ""));
+    if(!cond) fail.push(name);
+  };
+  const $id = (id) => document.getElementById(id);
+
+  /* ---- 1. переводы чисел ---- */
+  T("toBin(5) = 101", toBin(5) === "101", toBin(5));
+  T("toBin(255) = 11111111", toBin(255) === "11111111", toBin(255));
+  T("toDec('101') = 5", toDec("101") === 5, toDec("101"));
+  T("breakdown(13) = 1·8 + 1·4 + 0·2 + 1·1 = 13",
+    breakdown(13) === "1·8 + 1·4 + 0·2 + 1·1 = 13", breakdown(13));
+  T("breakdown(1) = 1·1 = 1", breakdown(1) === "1·1 = 1", breakdown(1));
+  T("круговой перевод верен для всех 0..255",
+    Array.from({length: 256}, (_, n) => n).every(n => toDec(toBin(n)) === n));
+  T("подсказка не содержит готовый ответ", hintFor(13).indexOf("1101") === -1, hintFor(13));
+
+  /* ---- 2. раунд без таймера, режим 10→2, лёгкая сложность ---- */
+  $id("optTimer").checked = false; $id("optTimer").dispatchEvent(new Event("change"));
+  $id("optHint").checked = true;   $id("optHint").dispatchEvent(new Event("change"));
+  document.querySelector('#diffList .chip[data-diff="easy"]').click();
+  document.querySelector('#modeList .mode[data-mode="dec2bin"]').click();
+  startRound();
+
+  T("меню скрылось, игра открылась", $id("screenGame").style.display === "" && $id("screenMenu").style.display === "none");
+  T("вопрос из диапазона 1..7", game.n >= 1 && game.n <= 7, game.n);
+  T("на экране десятичное число", $id("taskNum").textContent === String(game.n), $id("taskNum").textContent);
+  T("в режиме 10→2 на клавиатуре только 0 и 1", $id("pad").querySelectorAll("button").length === 3,
+    $id("pad").querySelectorAll("button").length);
+  T("таймер скрыт", $id("hudTimeWrap").style.display === "none");
+
+  // верный ответ
+  const firstN = game.n;
+  $id("answer").value = toBin(firstN);
+  checkAnswer();
+  T("верный ответ засчитан", game.right === 1 && game.wrong === 0, `${game.right}/${game.asked}`);
+  T("начислено 10 очков", game.score === 10, game.score);
+  T("серия = 1", game.streak === 1, game.streak);
+  T("в отчёте показано разложение", $id("feed").textContent.indexOf("·") !== -1, $id("feed").textContent.slice(0, 60));
+
+  // ошибка
+  game.locked = false;
+  $id("answer").value = toBin(game.n) === "0" ? "1" : "0";
+  checkAnswer();
+  T("ошибка засчитана", game.wrong === 1, game.wrong);
+  T("серия сброшена в 0", game.streak === 0, game.streak);
+  T("ошибка попала в список на разбор", game.missed.length === 1 && game.missed[0].n === game.n, game.missed.length);
+
+  // недопустимые цифры
+  game.locked = false; game.n = 5; game.dir = "dec2bin";
+  const askedBefore = game.asked;
+  $id("answer").value = "102";
+  checkAnswer();
+  T("цифра 2 в двоичном ответе отклонена без зачёта вопроса",
+    game.asked === askedBefore && game.wrong === 1, `asked=${game.asked} wrong=${game.wrong}`);
+
+  // ведущие нули
+  game.locked = false; game.n = 5; game.dir = "dec2bin";
+  const rightBefore = game.right;
+  $id("answer").value = "00101";
+  checkAnswer();
+  T("ведущие нули не мешают: 00101 = 101", game.right === rightBefore + 1, game.right);
+
+  /* ---- 3. режим 2→10 ---- */
+  game.locked = false; game.dir = "bin2dec"; game.n = 13;
+  const rightBefore2 = game.right;
+  $id("answer").value = "13";
+  checkAnswer();
+  T("2→10 принимает десятичный ответ", game.right === rightBefore2 + 1, game.right);
+
+  game.locked = false; game.dir = "bin2dec"; game.n = 13;
+  const wrongBefore = game.wrong;
+  $id("answer").value = "12";
+  checkAnswer();
+  T("2→10 ловит неверный ответ", game.wrong === wrongBefore + 1, game.wrong);
+
+  /* ---- 4. подсказка ---- */
+  game.locked = false; game.dir = "dec2bin"; game.n = 6; game.shownHint = false;
+  const hintsBefore = game.hints;
+  const scoreBefore = game.score;
+  useHint();
+  T("подсказка учтена в счётчике", game.hints === hintsBefore + 1, game.hints);
+  T("подсказка помечена для текущего ответа", game.shownHint === true);
+  const ptsNoHint = (game.shownHint = false, pointsFor());
+  game.shownHint = true;
+  const ptsHint = pointsFor();
+  T("подсказка отнимает 5 очков", ptsNoHint - ptsHint === 5, `${ptsNoHint} → ${ptsHint}`);
+  game.shownHint = false;
+  $id("answer").value = "110";
+  checkAnswer();
+  T("после верного ответа очки начислены", game.score > scoreBefore, game.score);
+
+  /* ---- 5. серия и множитель ---- */
+  game.streak = 0;
+  for(let i = 0; i < 5; i++){
+    game.dir = "dec2bin"; game.n = 3; game.locked = false; game.shownHint = false;
+    $id("answer").value = "11";
+    checkAnswer();
+  }
+  T("серия выросла до 5", game.streak === 5, game.streak);
+  T("лучшая серия зафиксирована", game.bestStreak >= 5, game.bestStreak);
+  game.streak = 40;
+  T("множитель ограничен ×3", pointsFor() <= 30, pointsFor());
+
+  /* ---- 6. клавиатура на экране ---- */
+  game.locked = false; game.dir = "dec2bin"; game.n = 5;
+  $id("answer").value = "";
+  const btns = [...$id("pad").querySelectorAll("button")];
+  btns.find(b => b.dataset.k === "1").click();
+  btns.find(b => b.dataset.k === "0").click();
+  btns.find(b => b.dataset.k === "1").click();
+  T("кнопки 1-0-1 набирают ответ", $id("answer").value === "101", $id("answer").value);
+  btns.find(b => b.dataset.k === "back").click();
+  T("кнопка ⌫ стирает символ", $id("answer").value === "10", $id("answer").value);
+
+  /* ---- 7. результаты ---- */
+  finishRound();
+  T("открыт экран результатов", $id("screenResult").style.display === "");
+  T("блоков в разборе столько же, сколько ошибок",
+    $id("missList").querySelectorAll(".miss").length === game.missed.length,
+    `${$id("missList").querySelectorAll(".miss").length} / ${game.missed.length}`);
+  T("точность показана в процентах", /%$/.test($id("resAcc").textContent), $id("resAcc").textContent);
+  T("итог совпадает с очками", $id("resScore").textContent === String(game.score), $id("resScore").textContent);
+  const saved = JSON.parse(localStorage.getItem(BEST_KEY) || "{}");
+  T("рекорд записан в localStorage", typeof saved["dec2bin-easy"] === "number", JSON.stringify(saved));
+
+  /* ---- 8. возврат в меню ---- */
+  $id("btnMenu").click();
+  T("вернулись в меню", $id("screenMenu").style.display === "" && $id("screenResult").style.display === "none");
+  T("в меню показан рекорд", $id("bestLine").textContent.indexOf("Рекорд") === 0, $id("bestLine").textContent);
+
+  const pass = fail.length === 0;
+  console.log("%cSELFTEST " + (pass ? "PASS" : "FAIL: " + fail.join("; ")),
+              "color:#fff;background:" + (pass ? "#12805c" : "#c02637") + ";padding:2px 6px");
+  console.log(log.join("\n"));
+  const pre = document.createElement("pre");
+  pre.id = "selftestOut";
+  pre.style.cssText = "position:fixed;left:8px;top:8px;z-index:9999;background:#101725;color:#e6ecff;" +
+                      "padding:12px;border-radius:10px;font-size:12px;max-height:90vh;overflow:auto;white-space:pre-wrap";
+  pre.textContent = "SELFTEST " + (pass ? "PASS" : "FAIL") + "\n" + log.join("\n");
+  document.body.appendChild(pre);
+  return { pass, fail, log };
+};
+
+if(location.search.includes("selftest")){ window.__runSelfTest(); }
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a51ae89bcde0b6a8',t:'MTc5MzIwMDY1OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
